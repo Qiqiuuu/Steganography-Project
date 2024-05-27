@@ -13,8 +13,7 @@ auto main() -> int{
         fmt::println("Wrong Extension!");
         return 0;
     }
-    auto str1 = std::string("Winiar to kurwa :)");
+    auto str1 = std::string("lelan,smyk,tomasl");
     encodeImage(path, str1);
-
     decodeImage(path);
 }
