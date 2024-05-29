@@ -13,6 +13,8 @@ FetchContent_Declare(
 
 FetchContent_MakeAvailable(fmt)
 
-add_executable(PJCProject main.cpp graphic/graphic.cpp console/console.cpp)
+add_executable(PJCProject main.cpp graphic/graphic.cpp console/console.cpp
+        graphic/BMP.hpp
+        graphic/BMP.hpp)
 
 target_link_libraries(PJCProject fmt)
