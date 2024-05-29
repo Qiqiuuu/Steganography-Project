@@ -18,6 +18,9 @@ auto main() -> int{
 //zapytaj sie o pragme czy tak moze byc;
 //zapytaj sie o format bmp 1,2,4,8,16,32
 //zapytaj sie o timestamp
+
+//fsystem::last_write_time
+
 //dodaj polimorfizm
 //zmien redundancje
 
