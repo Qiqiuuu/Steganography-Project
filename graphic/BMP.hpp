@@ -6,8 +6,10 @@
 #include <string>
 #include <iostream>
 #include <algorithm>
+#include <chrono>
 #include "vector"
 #include "bitset"
+#include "ImageAbstract.hpp"
 #pragma once
 #pragma pack(push, 1)
 
@@ -33,17 +35,17 @@ struct BMPInfoHeader {
     uint32_t biClrImportant;
 };
 #pragma pack(pop)
-struct BMP {
+struct BMP : ImageAbstract{
     BMPFileHeader fileHeader;
     BMPInfoHeader infoHeader;
     std::basic_fstream<char> inimage;
+    std::string path;
 
     BMP(std::string const &path) {
+        this -> path = path;
         inimage = std::fstream(path, std::ios::in | std::ios::out | std::ios::binary);
-        //sprawdz bftype
         if (!inimage) {
             fmt::println("Can't open this file!");
-            return;
         }
         inimage.read((char*)&fileHeader, sizeof(fileHeader));
         inimage.read((char*)&infoHeader, sizeof(infoHeader));
@@ -56,16 +58,19 @@ struct BMP {
         inimage.read((char*)&infoHeader, sizeof(infoHeader));
     }
 
-    auto checkIfCanEncode(std::string const &message) -> bool {
-        return  message.size() * 8 <= pow(2,16)|| message.size() * 8 <=infoHeader.biWidth*infoHeader.biHeight;
+    auto canEncrypt(std::string const &message) -> bool override{
+        return message.size() * 8 <= pow(2,16)|| message.size() * 8 <=infoHeader.biWidth*infoHeader.biHeight;
     }
 
-    auto info()->void {
-        fmt::println("Width: {}\nHeight: {}\nSize: {}kB\nBitsPerPixel: {}\nPixelMessage: {}",infoHeader.biWidth,infoHeader.biHeight,fileHeader.bfSize/1000,infoHeader.biBitCount,fileHeader.bfReserved1);
+    auto info()->void override{
+        auto timeRaw = std::filesystem::last_write_time(std::filesystem::path(path));
+        auto clock = std::chrono::clock_cast<std::chrono::system_clock>(timeRaw);
+        auto timeT = std::chrono::system_clock::to_time_t(clock);
+        fmt::println("Width: {}\nHeight: {}\nSize: {}kB\nLast modification time: {}",infoHeader.biWidth,infoHeader.biHeight,fileHeader.bfSize/1000,std::ctime(&timeT));
     }
 
 
-    auto encodeMessage(std::string &message) -> void {
+    auto encryptMessage(std::string &message) -> void override{
         auto pixelMessage = (message.size() * 8);
         setHeader(pixelMessage);
         auto charVec = std::vector<std::bitset<8>>();
@@ -81,9 +86,9 @@ struct BMP {
             inimage.seekp(-1, std::ios::cur);
             inimage.write((char *) (&bit), 1);
         }
-        fmt::println("Encoded Correctly: {}",message);
+        fmt::println("Encrypted Correctly: {}",message);
     }
-    auto decodeMessage() {
+    auto decryptMessage() -> void override{
         auto message = std::string();
         auto charBit = std::string();
         for (int i = 1; i <= fileHeader.bfReserved1; i++) {
@@ -95,6 +100,6 @@ struct BMP {
                 charBit = "";
             }
         };
-        fmt::println("Decoded Correctly: {}", message);
+        fmt::println("Decrypted Correctly: {}", message);
     }
 };

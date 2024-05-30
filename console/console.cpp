@@ -3,49 +3,47 @@
 #include "fmt/core.h"
 #include "../graphic/BMP.hpp"
 
+auto canOpenValidExtension(std::string const& path)->bool{
+    if (checkIfValidExtension(path)){
+        if(checkIfCanOpen(path)){
+            return true;
+        } else{
+            fmt::println("Can't open this file :(");
+            return false;
+        }
+    }else{
+        fmt::println("Wrong extension!");
+        return false;
+    }
+}
+//tutaj zrob polimorfizm
+//auto extensionDecider(std::string const& path)->extension{
+//
+//}
 
 auto infoFlag(std::string const& path)->void{
-    if (checkIfValidExtension(path)){
-        if(checkIfCanOpen(path)){
-            if(getExtension(path)==".bmp"){
-                auto img = BMP(path);
-                img.info();
-            }else if(getExtension(path)==".ppm"){
-
-            }
-        } else
-            fmt::println("Can't open this file :(");
+    if(canOpenValidExtension(path)){
+        getInfo(path);
     }else
-        fmt::println("Wrong extension!");
+        return;
 }
 auto encryptFlag(std::string const& path,std::string &message)->void{
-    if (checkIfValidExtension(path)){
-        if(checkIfCanOpen(path)){
-                encodeImage(path,message);
-        } else
-            fmt::println("Can't open this file :(");
-    }else
-        fmt::println("Wrong extension!");
+    if (canOpenValidExtension(path))
+        encryptImage(path,message);
+    else
+        return;
 }
 auto decryptFlag(std::string const& path)->void{
-    if (checkIfValidExtension(path)){
-        if(checkIfCanOpen(path)){
-            decodeImage(path);
-        } else
-            fmt::println("Can't open this file :(");
-    }else
-        fmt::println("Wrong extension!");
+    if (canOpenValidExtension(path))
+        decryptImage(path);
+    else
+        return;
 }
 auto checkFlag(std::string const& path, std::string const& message)->void{
-    if (checkIfValidExtension(path)){
-        if(checkIfCanOpen(path)){
-            auto img = BMP(path);
-            if(img.checkIfCanEncode(message))fmt::println("You can encrypt this message!");
-            else fmt::println("Too long message/not enough pixels");
-        } else
-            fmt::println("Can't open this file :(");
+    if (canOpenValidExtension(path)){
+        canEncryptMessage(path,message);
     }else
-        fmt::println("Wrong extension!");
+        return;
 }
 auto helpFlag()->void{
     fmt::println("Help:"

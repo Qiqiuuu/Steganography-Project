@@ -12,17 +12,7 @@
 
 auto main() -> int{
 //to do!
-//wpisywanie wiadomosci ze spacja
-//problem z flagami i ilosciami argumentów
-//dodaj automatyczne tworzenie obiektów bmp i ppm
-//zapytaj sie o pragme czy tak moze byc;
-//zapytaj sie o format bmp 1,2,4,8,16,32
-//zapytaj sie o timestamp
-
-//fsystem::last_write_time
-
-//dodaj polimorfizm
-//zmien redundancje
+//zerknij no otwieranie pliku
 
     fmt::println("Welcome to Stegnography, write -h to see Help :)");
     while(true){
@@ -32,24 +22,28 @@ auto main() -> int{
         auto input = std::vector<std::string>();
         auto next = std::string();
         while (stream >> next) {
-            input.push_back(next);
+            if(input.size()!=3)
+                input.push_back(next);
+            else{
+                input[2] += next;
+                if(stream) input[2] += " ";
+            }
         }
         if(input[0]=="exit"){
             break;
         }
         auto flag = input[0];
-        if (flag == "-i" || flag == "-info") {
-            infoFlag(input[1]);
-        } else if (flag == "-e" || flag == "-encrypt") {
+        if (input.size()==2 && (flag == "-i" || flag == "-info")) {
+        } else if (input.size()==3 && (flag == "-e" || flag == "-encrypt")) {
             encryptFlag(input[1],input[2]);
-        } else if (flag == "-d" || flag == "-decrypt") {
+        } else if (input.size()==2 && (flag == "-d" || flag == "-decrypt")) {
             decryptFlag(input[1]);
-        } else if (flag == "-c" || flag == "-check") {
+        } else if (input.size()==3 && (flag == "-c" || flag == "-check")) {
             checkFlag(input[1],input[2]);
-        } else if (flag == "-h" || flag == "-help") {
+        } else if ((input.size()==1 && (flag == "-h" || flag == "-help")) || (flag[0]!='-')) {
             helpFlag();
         } else {
-            helpFlag();
+            fmt::println("Invalid flag or amount of arguments. Check -h for help");
         }
     }
     fmt::println("Good bye ;)");
