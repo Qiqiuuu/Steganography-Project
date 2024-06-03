@@ -16,11 +16,6 @@ auto canOpenValidExtension(std::string const& path)->bool{
         return false;
     }
 }
-//tutaj zrob polimorfizm
-//auto extensionDecider(std::string const& path)->extension{
-//
-//}
-
 auto infoFlag(std::string const& path)->void{
     if(canOpenValidExtension(path)){
         getInfo(path);

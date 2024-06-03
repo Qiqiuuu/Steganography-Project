@@ -66,7 +66,7 @@ struct BMP : ImageAbstract{
         auto timeRaw = std::filesystem::last_write_time(std::filesystem::path(path));
         auto clock = std::chrono::clock_cast<std::chrono::system_clock>(timeRaw);
         auto timeT = std::chrono::system_clock::to_time_t(clock);
-        fmt::println("Width: {}\nHeight: {}\nSize: {}kB\nLast modification time: {}",infoHeader.biWidth,infoHeader.biHeight,fileHeader.bfSize/1000,std::ctime(&timeT));
+        fmt::println("Width: {}\nHeight: {}\nSize: {}kB\nLast modification time: {}",infoHeader.biWidth,infoHeader.biHeight,fileHeader.bfSize/1024,std::ctime(&timeT));
     }
 
 

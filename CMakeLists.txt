@@ -18,6 +18,7 @@ add_executable(PJCProject
         graphic/graphic.cpp
         console/console.cpp
         graphic/BMP.hpp
-        graphic/ImageAbstract.hpp)
+        graphic/ImageAbstract.hpp
+        graphic/PPM.hpp)
 
 target_link_libraries(PJCProject fmt)

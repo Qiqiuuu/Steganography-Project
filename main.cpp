@@ -13,6 +13,7 @@
 auto main() -> int{
 //to do!
 //zerknij no otwieranie pliku
+//przy ppm ogarnij komentarze wewnatrz
 
     fmt::println("Welcome to Stegnography, write -h to see Help :)");
     while(true){
@@ -34,6 +35,7 @@ auto main() -> int{
         }
         auto flag = input[0];
         if (input.size()==2 && (flag == "-i" || flag == "-info")) {
+            infoFlag(input[1]);
         } else if (input.size()==3 && (flag == "-e" || flag == "-encrypt")) {
             encryptFlag(input[1],input[2]);
         } else if (input.size()==2 && (flag == "-d" || flag == "-decrypt")) {

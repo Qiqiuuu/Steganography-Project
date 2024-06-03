@@ -4,11 +4,15 @@
 #include "fmt/core.h"
 #include <string>
 #include "BMP.hpp"
+#include "PPM.hpp"
 
 
 auto returnImage(std::string const& path)-> ImageAbstract*{
+    fmt::println("{}", getExtension(path));
     if(getExtension(path)==".bmp")
         return new BMP(path);
+    else if(getExtension(path)==".ppm")
+        return new PPM(path);
     return nullptr;
 }
 auto checkPTR(ImageAbstract* img) -> bool {
