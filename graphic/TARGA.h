@@ -11,68 +11,60 @@
 #include "bitset"
 #include "ImageAbstract.hpp"
 
+
 #pragma once
+#pragma pack(push, 1)
+struct TARGAFileHeader {
+    char idLength; // Length of the identifier
+    char colorMapType; // Color map type
+    char imageType; // Image type
+    uint16_t colorMapOrigin; // Color map origin
+    uint16_t colorMapLength; // Color map length
+    char colorMapDepth; // Color map depth
+    uint16_t xOrigin; // X-origin of the upper-left corner
+    uint16_t yOrigin; // Y-origin of the upper-left corner
+    uint16_t width; // Width of the image
+    uint16_t height; // Height of the image
+    char bitDepth; // Bits per pixel
+    char imageDescriptor; // Image descriptor
+};
+#pragma pack(pop)
 
-struct PPM : ImageAbstract{
 
+struct TARGA: ImageAbstract{
+    TARGAFileHeader fileHeader;
     std::basic_fstream<char> inimage;
     std::string path;
-    std::string format;
-    int width;
-    int height;
-    int maxColorValue;
-    size_t size;
-    std::string bitsNeeded;
-    int bits;
-    auto setHeader(int setPixelInf)->void{
-        std::string insert = "#" + std::to_string(setPixelInf) + " ";
-        auto restFile = std::stringstream();
-        inimage.seekg(bitsNeeded.size(), std::ios::beg);
-        restFile << inimage.rdbuf();
-        inimage.seekp(0);
-        inimage << insert << restFile.str();
-        inimage.seekg(0);
-        inimage >> bitsNeeded >> format >> width >> height >> maxColorValue;
-        bits = std::stoi(bitsNeeded.substr(1));
-    }
-    PPM(std::string const& path){
+    int size;
+
+    TARGA(std::string const &path) {
         this -> path = path;
         inimage = std::fstream(path, std::ios::in | std::ios::out | std::ios::binary);
         if (!inimage) {
             fmt::println("Can't open this file!");
         }
-        auto buffer = std::string();
-        inimage >> buffer;
-        if(buffer[0]!='#'){
-            bitsNeeded = "#0 ";
-            auto restFile = std::stringstream();
-            restFile << inimage.rdbuf();
-            inimage.seekp(0);
-            inimage << bitsNeeded << buffer << restFile.str();
-            inimage.seekg(bitsNeeded.size(), std::ios::beg);
-        }else
-            bitsNeeded = buffer;
-        inimage >> format >> width >> height >> maxColorValue;
-        size = [this]()->size_t{
-            size_t headerSize =0;
-            headerSize += format.size() + 1;
-            headerSize += std::to_string(width).size() + 1;
-            headerSize += std::to_string(height).size() + 1;
-            headerSize += std::to_string(maxColorValue).size() + 1;
-            auto imgSize = width*height*3;
-            return headerSize+imgSize+bitsNeeded.size();
-        }();
-        bits = std::stoi(bitsNeeded.substr(1));
+        inimage.read((char*)&fileHeader, sizeof(fileHeader));
+        size = sizeof(fileHeader)+fileHeader.width*fileHeader.height*fileHeader.bitDepth;
     }
+
+    auto setHeader(int setPixelInf){
+        fileHeader.idLength = setPixelInf;
+        inimage.seekg(0);
+        inimage.write((char*)&fileHeader, sizeof(fileHeader));
+    }
+
     auto canEncrypt(std::string const &message) -> bool override{
-        return message.size() * 8 <= pow(2,16)|| message.size() * 8 <=width*height;
+        return message.size() * 8 <= pow(2,8)|| message.size() * 8 <=fileHeader.width*fileHeader.height;
     }
+
     auto info()->void override{
         auto timeRaw = std::filesystem::last_write_time(std::filesystem::path(path));
         auto clock = std::chrono::clock_cast<std::chrono::system_clock>(timeRaw);
         auto timeT = std::chrono::system_clock::to_time_t(clock);
-        fmt::println("Width: {}\nHeight: {}\nSize: {}kB\nLast modification time: {}",width,height,size/1024,std::ctime(&timeT));
+        fmt::println("Width: {}\nHeight: {}\nSize: {}kB\nLast modification time: {}",fileHeader.width,fileHeader.height,size/1024,std::ctime(&timeT));
     }
+
+
     auto encryptMessage(std::string &message) -> void override{
         auto pixelMessage = (message.size() * 8);
         setHeader(pixelMessage);
@@ -94,7 +86,7 @@ struct PPM : ImageAbstract{
     auto decryptMessage() -> void override{
         auto message = std::string();
         auto charBit = std::string();
-        for (int i = 1; i <= bits; i++) {
+        for (int i = 1; i <= fileHeader.idLength; i++) {
             auto bit = char();
             inimage.read((char *) (&bit), 1);
             charBit += std::to_string(std::bitset<8>(bit)[0]);

@@ -42,7 +42,7 @@ auto checkFlag(std::string const& path, std::string const& message)->void{
 }
 auto helpFlag()->void{
     fmt::println("Help:"
-                 "\n\tSupported Formats: bmp, ppm"
+                 "\n\tSupported Formats: bmp, ppm(p6)"
                  "\n\tFlags: "
                  "\n\t\t[-i/-info] [path]"
                  "\n\t\t[-e/-encrypt] [path] [message]"

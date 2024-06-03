@@ -5,6 +5,7 @@
 #include <string>
 #include "BMP.hpp"
 #include "PPM.hpp"
+#include "TARGA.h"
 
 
 auto returnImage(std::string const& path)-> ImageAbstract*{
@@ -13,6 +14,8 @@ auto returnImage(std::string const& path)-> ImageAbstract*{
         return new BMP(path);
     else if(getExtension(path)==".ppm")
         return new PPM(path);
+    else if(getExtension(path)==".tga")
+        return new TARGA(path);
     return nullptr;
 }
 auto checkPTR(ImageAbstract* img) -> bool {
@@ -51,7 +54,7 @@ auto checkIfCanOpen(std::string const& path)->bool{
 }
 auto checkIfValidExtension(std::string const& path)->bool{
     auto extension = std::filesystem::path(path).extension().string();
-    return extension == ".ppm" || extension == ".bmp";
+    return extension == ".ppm" || extension == ".bmp" || extension == ".tga";
 }
 auto getExtension(std::string const& path)->std::string{
     auto extension = std::filesystem::path(path).extension().string();
