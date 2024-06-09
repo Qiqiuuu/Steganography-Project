@@ -20,6 +20,6 @@ add_executable(PJCProject
         graphic/BMP.hpp
         graphic/ImageAbstract.hpp
         graphic/PPM.hpp
-        graphic/TARGA.h)
+        graphic/TGA.hpp)
 
 target_link_libraries(PJCProject fmt)

@@ -24,8 +24,10 @@ struct PPM : ImageAbstract{
     size_t size;
     std::string bitsNeeded;
     int bits;
+    //podmienia zakomentowana ilosc pixeli na potrzebna przy dekrypcji obecnej
+    //kodowanej wiadomosci
     auto setHeader(int setPixelInf)->void{
-        std::string insert = "#" + std::to_string(setPixelInf) + " ";
+        std::string insert = "#" + std::to_string(setPixelInf) + "\n";
         auto restFile = std::stringstream();
         inimage.seekg(bitsNeeded.size(), std::ios::beg);
         restFile << inimage.rdbuf();
@@ -43,8 +45,10 @@ struct PPM : ImageAbstract{
         }
         auto buffer = std::string();
         inimage >> buffer;
+        //sprawdzenie czy jest komentarz z iloscia zapisanych bitow
+        //jak nie to daje 0 bazowo
         if(buffer[0]!='#'){
-            bitsNeeded = "#0 ";
+            bitsNeeded = "#0\n";
             auto restFile = std::stringstream();
             restFile << inimage.rdbuf();
             inimage.seekp(0);
@@ -68,41 +72,16 @@ struct PPM : ImageAbstract{
         return message.size() * 8 <= pow(2,16)|| message.size() * 8 <=width*height;
     }
     auto info()->void override{
-        auto timeRaw = std::filesystem::last_write_time(std::filesystem::path(path));
-        auto clock = std::chrono::clock_cast<std::chrono::system_clock>(timeRaw);
-        auto timeT = std::chrono::system_clock::to_time_t(clock);
-        fmt::println("Width: {}\nHeight: {}\nSize: {}kB\nLast modification time: {}",width,height,size/1024,std::ctime(&timeT));
+        auto timeT = getFileTime(path);
+        fmt::println("Format: PPM\nWidth: {}\nHeight: {}\nSize: {}kB\nLast modification time: {}",
+                     width,height,size/1024,std::ctime(&timeT));
     }
-    auto encryptMessage(std::string &message) -> void override{
+    auto encryptMessage(std::string &message) -> void override {
         auto pixelMessage = (message.size() * 8);
         setHeader(pixelMessage);
-        auto charVec = std::vector<std::bitset<8>>();
-        for (char c: message) {
-            charVec.push_back(std::bitset<8>(c));
-        }
-        for(int i=0;i<pixelMessage;i++){
-            auto bit = char();
-            inimage.read((char *) (&bit), 1);
-            bit &= ~1;
-            if (charVec[i/8][7]) bit |= 1;
-            charVec[i/8]<<=1;
-            inimage.seekp(-1, std::ios::cur);
-            inimage.write((char *) (&bit), 1);
-        }
-        fmt::println("Encrypted Correctly: {}",message);
+        encryptMessageStatic(message, inimage);
     }
     auto decryptMessage() -> void override{
-        auto message = std::string();
-        auto charBit = std::string();
-        for (int i = 1; i <= bits; i++) {
-            auto bit = char();
-            inimage.read((char *) (&bit), 1);
-            charBit += std::to_string(std::bitset<8>(bit)[0]);
-            if (i%8==0) {
-                message += (char)std::bitset<8>(charBit).to_ulong();
-                charBit = "";
-            }
-        };
-        fmt::println("Decrypted Correctly: {}", message);
+        decryptMessageStatic(bits, inimage);
     }
 };

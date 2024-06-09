@@ -47,59 +47,37 @@ struct BMP : ImageAbstract{
         if (!inimage) {
             fmt::println("Can't open this file!");
         }
+        //wczytywanie headera do zmiennych
         inimage.read((char*)&fileHeader, sizeof(fileHeader));
         inimage.read((char*)&infoHeader, sizeof(infoHeader));
     }
-
+    //wstawianie do headera informacji o ilosci bitow potrzebnych do zapisania wiadomosci
     auto setHeader(int setPixelInf){
         fileHeader.bfReserved1 = setPixelInf;
         inimage.seekg(0);
         inimage.write((char*)&fileHeader, sizeof(fileHeader));
         inimage.read((char*)&infoHeader, sizeof(infoHeader));
     }
-
+    //sprawdzanie czy wiadomosci moze sie zmiescic w int lub czy obraz moze pomiescic ilosc bitow
+    //dla roznych "formatow" jak 24b per pixel lub 32b pp
     auto canEncrypt(std::string const &message) -> bool override{
-        return message.size() * 8 <= pow(2,16)|| message.size() * 8 <=infoHeader.biWidth*infoHeader.biHeight;
+        return message.size() * 8 <= pow(2,16)|| message.size() * 8 <=infoHeader.biWidth*infoHeader.biHeight*(infoHeader.biBitCount<8?1:infoHeader.biBitCount/8);
     }
-
+    //zwracane info o obrazie
     auto info()->void override{
-        auto timeRaw = std::filesystem::last_write_time(std::filesystem::path(path));
-        auto clock = std::chrono::clock_cast<std::chrono::system_clock>(timeRaw);
-        auto timeT = std::chrono::system_clock::to_time_t(clock);
-        fmt::println("Width: {}\nHeight: {}\nSize: {}kB\nLast modification time: {}",infoHeader.biWidth,infoHeader.biHeight,fileHeader.bfSize/1024,std::ctime(&timeT));
+        auto timeT = getFileTime(path);
+        fmt::println("Format: BMP\nWidth: {}\nHeight: {}\nSize: {}kB\nLast modification time: {}"
+                     ,infoHeader.biWidth,infoHeader.biHeight,
+                     fileHeader.bfSize/1024,std::ctime(&timeT));
     }
-
-
+    //encrypt dla bmp
     auto encryptMessage(std::string &message) -> void override{
         auto pixelMessage = (message.size() * 8);
         setHeader(pixelMessage);
-        auto charVec = std::vector<std::bitset<8>>();
-        for (char c: message) {
-            charVec.push_back(std::bitset<8>(c));
-        }
-        for(int i=0;i<pixelMessage;i++){
-            auto bit = char();
-            inimage.read((char *) (&bit), 1);
-            bit &= ~1;
-            if (charVec[i/8][7]) bit |= 1;
-            charVec[i/8]<<=1;
-            inimage.seekp(-1, std::ios::cur);
-            inimage.write((char *) (&bit), 1);
-        }
-        fmt::println("Encrypted Correctly: {}",message);
+        encryptMessageStatic(message,inimage);
     }
-    auto decryptMessage() -> void override{
-        auto message = std::string();
-        auto charBit = std::string();
-        for (int i = 1; i <= fileHeader.bfReserved1; i++) {
-            auto bit = char();
-            inimage.read((char *) (&bit), 1);
-            charBit += std::to_string(std::bitset<8>(bit)[0]);
-            if (i%8==0) {
-                message += (char)std::bitset<8>(charBit).to_ulong();
-                charBit = "";
-            }
-        };
-        fmt::println("Decrypted Correctly: {}", message);
+    //decrypt dla obrazu
+    auto decryptMessage() -> void override {
+        decryptMessageStatic(fileHeader.bfReserved1, inimage);
     }
 };

@@ -5,22 +5,21 @@
 #include <string>
 #include "BMP.hpp"
 #include "PPM.hpp"
-#include "TARGA.h"
+#include "TGA.hpp"
 
 
 auto returnImage(std::string const& path)-> ImageAbstract*{
-    fmt::println("{}", getExtension(path));
     if(getExtension(path)==".bmp")
         return new BMP(path);
     else if(getExtension(path)==".ppm")
         return new PPM(path);
     else if(getExtension(path)==".tga")
-        return new TARGA(path);
+        return new TGA(path);
     return nullptr;
 }
 auto checkPTR(ImageAbstract* img) -> bool {
     if (!img) {
-        fmt::println("Failed to load image :(");
+        fmt::println("Failed to load an image :(");
         return false;
     }
     return true;
@@ -76,7 +75,7 @@ auto canEncryptMessage(std::string const& path,std::string const&message)->void{
         return;
     }
     if(img ->canEncrypt(message))
-        fmt::println("You can encrypt message in this image");
+        fmt::println("You can encrypt this message in this image");
     else
         fmt::println("Too long message/not enough pixels");
     delete img;
