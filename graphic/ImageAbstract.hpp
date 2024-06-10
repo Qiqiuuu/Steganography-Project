@@ -15,6 +15,7 @@ struct ImageAbstract {
         auto timeT = std::chrono::system_clock::to_time_t(clock);
         return timeT;
     }
+    //sysytem kryptowania ktory przechodzi przez kolejne bajty zdjecia zmieniajac LSB na bity charów z wiadomosci
     static auto encryptMessageStatic(std::string &message,std::basic_fstream<char> &stream){
         auto pixelMessage = (message.size() * 8);
         auto charVec = std::vector<std::bitset<8>>();
@@ -33,6 +34,7 @@ struct ImageAbstract {
         stream.peek();
         fmt::println("Encrypted Correctly: {}\n",message);
     }
+    //
     static auto decryptMessageStatic(uint16_t const&amountOfBits,std::basic_fstream<char> &stream){
         auto message = std::string();
         auto charBit = std::string();

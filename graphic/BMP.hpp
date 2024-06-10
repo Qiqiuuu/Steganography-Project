@@ -73,6 +73,10 @@ struct BMP : ImageAbstract{
     //encrypt dla bmp
     auto encryptMessage(std::string &message) -> void override{
         auto pixelMessage = (message.size() * 8);
+        if(!canEncrypt(message)){
+            fmt::println("Sorry, but you can't encypt this message in this file");
+            return;
+        }
         setHeader(pixelMessage);
         encryptMessageStatic(message,inimage);
     }
