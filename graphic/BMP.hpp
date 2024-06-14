@@ -61,7 +61,7 @@ struct BMP : ImageAbstract{
     //sprawdzanie czy wiadomosci moze sie zmiescic w int lub czy obraz moze pomiescic ilosc bitow
     //dla roznych "formatow" jak 24b per pixel lub 32b pp
     auto canEncrypt(std::string const &message) -> bool override{
-        return message.size() * 8 <= pow(2,16)|| message.size() * 8 <=infoHeader.biWidth*infoHeader.biHeight*(infoHeader.biBitCount<8?1:infoHeader.biBitCount/8);
+        return (message.size() * 8 <= pow(2,16))|| (message.size() * 8 <=infoHeader.biWidth*infoHeader.biHeight*(infoHeader.biBitCount<8?1:infoHeader.biBitCount/8));
     }
     //zwracane info o obrazie
     auto info()->void override{
@@ -73,6 +73,10 @@ struct BMP : ImageAbstract{
     //encrypt dla bmp
     auto encryptMessage(std::string &message) -> void override{
         auto pixelMessage = (message.size() * 8);
+        if(!canEncrypt(message)){
+            fmt::println("Sorry, but you can't encypt this message in this file");
+            return;
+        }
         setHeader(pixelMessage);
         encryptMessageStatic(message,inimage);
     }

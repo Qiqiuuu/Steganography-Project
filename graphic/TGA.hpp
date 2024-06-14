@@ -36,7 +36,7 @@ struct TGA: ImageAbstract{
     std::basic_fstream<char> inimage;
     std::string path;
     int size;
-
+    //oblicznie rozmiaru w zaleznosci od parametrow headera
     int calculateTGAFileSize(const TARGAFileHeader &header) {
         int headerSize = 18;
         int idLength = header.idLength;
@@ -54,7 +54,7 @@ struct TGA: ImageAbstract{
         inimage.read((char*)&fileHeader, sizeof(fileHeader));
         size = calculateTGAFileSize(fileHeader);
     }
-
+    //pierwsze 16 bajtów przekazywane na rzecz zapisania ilosci potrzebnych bajtow przy odczycie
     auto setPixels(std::fstream &stream , int numberOfBits){
         auto bitNum = std::bitset<16>(numberOfBits);
         for(int i=0;i<16;i++){
@@ -68,6 +68,7 @@ struct TGA: ImageAbstract{
         }
         stream.peek();
     }
+    //czytanie pierwszywch 16 bajtow
     auto readPixels(std::fstream &stream) -> int{
         auto charBit = std::string();
         for (int i = 0; i < 16; i++) {
@@ -80,7 +81,7 @@ struct TGA: ImageAbstract{
 
 
     auto canEncrypt(std::string const &message) -> bool override{
-        return message.size() * 8 <= pow(2,16)|| message.size() * 8 <=fileHeader.width*fileHeader.height;
+        return (message.size() * 8 <= pow(2,16)) || (message.size() * 8 <=fileHeader.width*fileHeader.height-16);
     }
 
     auto info()->void override{
@@ -92,6 +93,10 @@ struct TGA: ImageAbstract{
 
     auto encryptMessage(std::string &message) -> void override{
         auto pixelMessage = (message.size() * 8);
+        if(!canEncrypt(message)){
+            fmt::println("Sorry, but you can't encypt this message in this file");
+            return;
+        }
         setPixels(inimage,pixelMessage);
         encryptMessageStatic(message, inimage);
     }

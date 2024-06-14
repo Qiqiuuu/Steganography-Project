@@ -4,46 +4,19 @@
 #include "fmt/core.h"
 #include "fmt/ranges.h"
 #include <string>
-#include <iostream>
 #include <vector>
-#include "bitset"
-#include "console/console.hpp"
-#include "regex"
-auto main() -> int{
-//to do!
-//zerknij no otwieranie pliku
-//przy ppm ogarnij komentarze wewnatrz
 
-    fmt::println("Welcome to Steganography, write -h to see Help :)");
-    while(true){
-        auto in = std::string();
-        std::getline(std::cin, in);
-        auto stream = std::istringstream(in);
-        auto input = std::vector<std::string>();
-        auto next = std::string();
-        while (stream >> next) {
-            if(input.size()!=3)
-                input.push_back(next);
-            else{
-                if (!input[2].empty()) {
-                    input[2] += " ";
-                }
-                input[2] += next;
-            }
-        }
-        if(input.size()>2){
-            auto pattern = std::regex("\"(.*)\"");
-            auto match = std::smatch();
-            if (std::regex_search(input[2], match, pattern))
-                input[2] = match[0].str().substr(1, match[0].str().size() - 2);
-            else{
-                fmt::println("You didn't provide your message correcly");
-                continue;
-            }
-        }
-        if(input[0]=="exit"){
-            break;
-        }
+auto getArgumentsToVector(int argc, char* argv[]) -> std::vector<std::string> {
+    auto args = std::vector<std::string>();
+    for (int i = 1; i < argc; ++i) {
+        args.push_back(argv[i]);
+    }
+    return args;
+}
+auto main(int argc, char* argv[]) -> int {
+    if(argc == 1)helpFlag();
+    if (argc > 1) {
+        auto input = getArgumentsToVector(argc, argv);
         auto flag = input[0];
         if (input.size()==2 && (flag == "-i" || flag == "--info")) {
             infoFlag(input[1]);
@@ -57,7 +30,8 @@ auto main() -> int{
             helpFlag();
         } else {
             fmt::println("Invalid flag or amount of arguments. Check -h for help");
+            return 1;
         }
     }
-    fmt::println("Good bye ;)");
+    return 0;
 }

@@ -24,6 +24,30 @@ struct PPM : ImageAbstract{
     size_t size;
     std::string bitsNeeded;
     int bits;
+    //metoda która zbiera poprawnie headera bez przypadkowych komentarzy
+    auto getData()->void{
+        auto testSTR = std::string();
+        auto index = 0;
+        while (inimage >> testSTR){
+            if(testSTR[0]!='#'){
+                switch (index) {
+                    case 0:
+                        format = testSTR;
+                        break;
+                    case 1:
+                        width = std::stoi(testSTR);
+                        break;
+                    case 2:
+                        height = std::stoi(testSTR);
+                        break;
+                    case 3:
+                        maxColorValue =std::stoi(testSTR);
+                        break;
+                }
+                if(++index>=4)break;
+            }
+        }
+    };
     //podmienia zakomentowana ilosc pixeli na potrzebna przy dekrypcji obecnej
     //kodowanej wiadomosci
     auto setHeader(int setPixelInf)->void{
@@ -34,7 +58,8 @@ struct PPM : ImageAbstract{
         inimage.seekp(0);
         inimage << insert << restFile.str();
         inimage.seekg(0);
-        inimage >> bitsNeeded >> format >> width >> height >> maxColorValue;
+        inimage >> bitsNeeded;
+        getData();
         bits = std::stoi(bitsNeeded.substr(1));
     }
     PPM(std::string const& path){
@@ -56,7 +81,8 @@ struct PPM : ImageAbstract{
             inimage.seekg(bitsNeeded.size(), std::ios::beg);
         }else
             bitsNeeded = buffer;
-        inimage >> format >> width >> height >> maxColorValue;
+        getData();
+        //zlicznie rozmiaru
         size = [this]()->size_t{
             size_t headerSize =0;
             headerSize += format.size() + 1;
@@ -69,7 +95,7 @@ struct PPM : ImageAbstract{
         bits = std::stoi(bitsNeeded.substr(1));
     }
     auto canEncrypt(std::string const &message) -> bool override{
-        return message.size() * 8 <= pow(2,16)|| message.size() * 8 <=width*height;
+        return (message.size() * 8 <= pow(2,16)) || (message.size() * 8 <=width*height);
     }
     auto info()->void override{
         auto timeT = getFileTime(path);
@@ -78,6 +104,10 @@ struct PPM : ImageAbstract{
     }
     auto encryptMessage(std::string &message) -> void override {
         auto pixelMessage = (message.size() * 8);
+        if(!canEncrypt(message)){
+            fmt::println("Sorry, but you can't encypt this message in this file");
+            return;
+        }
         setHeader(pixelMessage);
         encryptMessageStatic(message, inimage);
     }
